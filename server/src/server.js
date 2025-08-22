@@ -1,9 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
-
 const { sequelize } = require("./shared/database");
-
+const sessionConfig = require("./shared/config/session");
 const chatbotRoutes = require("./features/chatbot/chat.routes");
 
 const app = express();
@@ -11,23 +10,7 @@ const PORT = process.env.PORT;
 
 app.use(express.json());
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    // store: MongoStore.create({
-    //   mongoUrl: process.env.MONGODB_URI,
-    //   collectionName: "sessions",
-    //   ttl: 14 * 24 * 60 * 60,
-    // }),
-    cookie: {
-      maxAge: 14 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    },
-  })
-);
+app.use(session(sessionConfig));
 
 // Health check
 app.get("/", (req, res) => {
