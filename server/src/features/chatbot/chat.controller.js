@@ -5,14 +5,13 @@ exports.handleMessage = async (req, res) => {
 
   chatService.initSession(req);
   const state = req.session.state;
-  let reply = "";
 
-  // Convert message to uppercase in case user types 'm' or 'M'
   const input = message.trim().toUpperCase();
+  let reply = "";
 
   // Special command: Show main menu anytime
   if (input === "M") {
-    reply = await chatService.getMainMenu();
+    reply = chatService.getMainMenu();
     req.session.state = "MAIN_MENU";
     return res.json({ reply });
   }
@@ -25,40 +24,36 @@ exports.handleMessage = async (req, res) => {
         reply = await chatService.getMenuItems();
         break;
       case "97":
-        reply = chatService.viewCurrentOrder(req);
+        reply = await chatService.viewCurrentOrder(req);
         break;
       case "98":
-        reply = chatService.viewPastOrders(req);
+        reply = await chatService.viewPastOrders(req);
         break;
       case "99":
         reply = await chatService.checkoutOrder(req);
         break;
       case "0":
-        reply = chatService.cancelOrder(req);
+        reply = await chatService.cancelOrder(req);
         break;
       default:
         reply = chatService.getMainMenu();
     }
-  }
-  // PLACE ORDER STATE
-  else if (state === "PLACE_ORDER") {
+  } else if (state === "PLACE_ORDER") {
     const selection = parseInt(input, 10);
     if (!isNaN(selection)) {
       if (selection === 99) {
         reply = await chatService.checkoutOrder(req);
       } else if (selection === 97) {
-        reply = chatService.viewCurrentOrder(req);
+        reply = await chatService.viewCurrentOrder(req);
       } else if (selection === 0) {
-        reply = chatService.cancelOrder(req);
+        reply = await chatService.cancelOrder(req);
       } else {
         const result = await chatService.addItemToOrder(req, selection);
-        reply = result.error
-          ? result.error
-          : `${result.message}\nType a number to add more items, 97 to view current orders, 99 to checkout, 0 to cancel, or M to see menu options again.`;
+        reply = result.error ? result.error : `${result.message}`;
       }
     } else {
       reply =
-        "Invalid input. Enter the item number to add it to your order, 97 to view current orders, 99 to checkout, 0 to cancel, or M to see menu options again.";
+        "Invalid input. Enter a valid item number or  97 to view current orders, 99 to checkout, 0 to cancel, or M to see menu options again.";
     }
   }
 

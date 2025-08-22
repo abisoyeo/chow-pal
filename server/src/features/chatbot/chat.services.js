@@ -1,16 +1,16 @@
-const { Menu, Order } = require("../../shared/database");
+const { Menu, Order, OrderItem } = require("../../shared/database");
 
 /**
  * Initialize session for a new user
  */
 function initSession(req) {
   if (!req.session.state) req.session.state = "MAIN_MENU";
-  if (!req.session.currentOrder) req.session.currentOrder = [];
-  if (!req.session.pastOrders) req.session.pastOrders = [];
+  if (!req.session.cart) req.session.cart = [];
+  if (!req.session.currentOrderId) req.session.currentOrderId = null;
 }
 
 /**
- * Get main menu options
+ * Main menu
  */
 function getMainMenu() {
   return `Select an option:
@@ -23,27 +23,54 @@ M - Show menu anytime`;
 }
 
 /**
- * List restaurant items from DB
+ * List menu items from DB
  */
 async function getMenuItems() {
   const items = await Menu.findAll();
-  return items
-    .map((item) => `${item.id} - ${item.name} (₦${item.price})`)
-    .join("\n");
+  return items.map((i) => `${i.id} - ${i.name} (₦${i.price})`).join("\n");
 }
 
 /**
- * Add item to current order in session with quantity tracking
+ * Add item to order (DB + session cart)
  */
 async function addItemToOrder(req, selection) {
   const item = await Menu.findByPk(selection);
   if (!item) return { error: "Invalid selection" };
 
-  const orderItem = req.session.currentOrder.find((i) => i.id === item.id);
-  if (orderItem) {
-    orderItem.quantity += 1;
+  // 1️⃣ If no order exists, create a new pending order
+  let order;
+  if (!req.session.currentOrderId) {
+    order = await Order.create({
+      sessionId: req.sessionID,
+      status: "pending",
+      total: item.price,
+    });
+    req.session.currentOrderId = order.id;
+    req.session.cart = [];
   } else {
-    req.session.currentOrder.push({
+    order = await Order.findByPk(req.session.currentOrderId);
+  }
+
+  // 2️⃣ Check if item already in current session cart
+  let cartItem = req.session.cart.find((i) => i.id === item.id);
+  if (cartItem) {
+    // Update quantity in DB
+    const orderItem = await OrderItem.findOne({
+      where: { orderId: order.id, menuId: item.id },
+    });
+    orderItem.quantity += 1;
+    await orderItem.save();
+
+    cartItem.quantity += 1;
+  } else {
+    // Add new item
+    await OrderItem.create({
+      orderId: order.id,
+      menuId: item.id,
+      quantity: 1,
+      unitPrice: item.price,
+    });
+    req.session.cart.push({
       id: item.id,
       name: item.name,
       price: item.price,
@@ -53,62 +80,105 @@ async function addItemToOrder(req, selection) {
 
   return {
     message: `${item.name} added to your order (x${
-      orderItem ? orderItem.quantity : 1
-    })`,
+      cartItem ? cartItem.quantity : 1
+    })
+Add more items (by number)
+97 = View current order
+99 = Checkout
+0 = Cancel order
+M = Show menu again`,
   };
 }
 
 /**
- * View current order with quantities
+ * View current order
  */
-function viewCurrentOrder(req) {
-  if (!req.session.currentOrder.length)
+async function viewCurrentOrder(req) {
+  if (!req.session.cart.length)
     return "No items in current order. Type 1 to see menu items and place an order.";
-  return req.session.currentOrder
-    .map((i) => `${i.name} x${i.quantity}`)
-    .join("\n");
+
+  return `${req.session.cart.map((i) => `${i.name} x${i.quantity}`).join("\n")}
+1 = Continue shopping
+99 = Checkout
+0 = Cancel order
+M = Show menu again`;
 }
 
 /**
- * Checkout current order and save to DB
+ * Checkout current order
  */
 async function checkoutOrder(req) {
-  if (!req.session.currentOrder.length) return "No order to place.";
+  if (!req.session.cart.length) return "No order to place.";
 
-  // Save order to DB
-  await Order.create({
-    items: JSON.stringify(req.session.currentOrder),
+  const order = await Order.findByPk(req.session.currentOrderId, {
+    include: { model: OrderItem, include: Menu },
   });
 
-  req.session.pastOrders.push(req.session.currentOrder);
-  req.session.currentOrder = [];
-  req.session.state = "MAIN_MENU";
-  return "Order placed! Click here to make your payment {PAYSTACK LINK} or You can start a new order.";
+  if (!order) return "No order found.";
+
+  // 3️⃣ Update order total................SHOULD BE FROM ORDER ITEM
+  const total = order.OrderItems.reduce(
+    (sum, i) => sum + i.quantity * i.unitPrice,
+    0
+  );
+
+  order.total = total;
+  order.status = "completed"; // TESTING. Move all this to paystack payment verification
+  await order.save();
+
+  // Instead calculate total price for current orders and call paystack payment service by sending amount and user email which returns the link to sedn to cliennt
+
+  // const url = await initiatePayment(req, total, order) // use orderId as reference
+  // order.status = "completed";  // Move all this to paystack payment verification
+  // req.session.cart = [];
+  // req.session.currentOrderId = null;
+  // req.session.state = "MAIN_MENU";
+  // Also how to return a payment feedback, success/fail
+
+  return "Order placed! Click here to make your payment {PAYSTACK LINK} or start a new order.";
 }
 
 /**
  * Cancel current order
  */
-function cancelOrder(req) {
-  if (!req.session.currentOrder.length) return "No order to cancel";
-  req.session.currentOrder = [];
+async function cancelOrder(req) {
+  if (!req.session.cart.length) return "No order to cancel.";
+
+  const order = await Order.findByPk(req.session.currentOrderId);
+  if (order) {
+    order.status = "cancelled";
+    await order.save();
+  }
+
+  req.session.cart = [];
+  req.session.currentOrderId = null;
   req.session.state = "MAIN_MENU";
-  return "Current order cancelled";
+
+  return "Current order cancelled.";
 }
 
 /**
  * View past orders
  */
-function viewPastOrders(req) {
-  if (!req.session.pastOrders.length) return "No past orders";
-  return req.session.pastOrders
-    .map(
-      (order, idx) =>
-        `Order ${idx + 1}: ${order
-          .map((i) => `${i.name} x${i.quantity}`)
-          .join(", ")}`
-    )
-    .join("\n");
+async function viewPastOrders(req) {
+  const orders = await Order.findAll({
+    where: { sessionId: req.sessionID },
+    include: { model: OrderItem, include: Menu },
+    order: [["createdAt", "DESC"]],
+  });
+
+  if (!orders.length) return "No past orders.";
+
+  const result = orders.map((order, idx) => {
+    const items = order.OrderItems.map(
+      (oi) => `${oi.Menu.name} x${oi.quantity}`
+    ).join(", ");
+    return `Order ${idx + 1} [${order.status}]: ${items} (Total: ₦${
+      order.total
+    })`;
+  });
+
+  return { reply: result.join("\n") };
 }
 
 module.exports = {

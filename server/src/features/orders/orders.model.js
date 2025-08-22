@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
       },
-      deviceId: {
+      sessionId: {
         type: DataTypes.STRING(50),
         allowNull: false,
       },
@@ -27,6 +27,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 0.0,
       },
+      paymentReference: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        allowNull: false,
+        unique: true,
+      },
     },
     {
       tableName: "orders",
@@ -36,6 +42,8 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   Order.associate = (db) => {
+    Order.hasMany(db.OrderItem, { foreignKey: "orderId" });
+
     Order.belongsToMany(db.Menu, {
       through: db.OrderItem,
       foreignKey: "orderId",

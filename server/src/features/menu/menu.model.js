@@ -31,6 +31,8 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   Menu.associate = (db) => {
+    Menu.hasMany(db.OrderItem, { foreignKey: "menuId" });
+
     Menu.belongsToMany(db.Order, {
       through: db.OrderItem,
       foreignKey: "menuId",
