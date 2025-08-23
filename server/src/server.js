@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
+const cors = require("cors");
 const { sequelize } = require("./shared/database");
 const sessionConfig = require("./shared/config/session");
 const chatbotRoutes = require("./features/chatbot/chat.routes");
@@ -8,6 +9,12 @@ const chatbotRoutes = require("./features/chatbot/chat.routes");
 const app = express();
 const PORT = process.env.PORT;
 
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use(session(sessionConfig));

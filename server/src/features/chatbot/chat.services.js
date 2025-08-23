@@ -27,7 +27,15 @@ M - Show menu anytime`;
  */
 async function getMenuItems() {
   const items = await Menu.findAll();
-  return items.map((i) => `${i.id} - ${i.name} (₦${i.price})`).join("\n");
+  return `Please select which item to add to your cart:
+
+${items.map((i) => `${i.id} - ${i.name} (₦${i.price})`).join("\n")}
+  
+Enter the number of the meal you’d like to order, or type:
+- 97 to view your current order  
+- 99 to checkout  
+- 0 to cancel  
+- M to return to the main menu`;
 }
 
 /**
@@ -82,11 +90,12 @@ async function addItemToOrder(req, selection) {
     message: `${item.name} added to your order (x${
       cartItem ? cartItem.quantity : 1
     })
+
 Add more items (by number)
-97 = View current order
-99 = Checkout
-0 = Cancel order
-M = Show menu again`,
+- 97 View current order
+- 99 Checkout
+- 0  Cancel order
+- M  Show menu again`,
   };
 }
 
@@ -97,24 +106,29 @@ async function viewCurrentOrder(req) {
   if (!req.session.cart.length)
     return "No items in current order. Type 1 to see menu items and place an order.";
 
-  return `${req.session.cart.map((i) => `${i.name} x${i.quantity}`).join("\n")}
-1 = Continue shopping
-99 = Checkout
-0 = Cancel order
-M = Show menu again`;
+  return `Your cart:
+
+${req.session.cart.map((i) => `${i.name} x${i.quantity}`).join("\n")}
+
+Add more meals you’d like to order, or type:
+- 99 Checkout
+- 0  Cancel order
+- M  Show menu again`;
 }
 
 /**
  * Checkout current order
  */
 async function checkoutOrder(req) {
-  if (!req.session.cart.length) return "No order to place.";
+  if (!req.session.cart.length)
+    return "No order to place.  Type 1 to see menu items and place an order.";
 
   const order = await Order.findByPk(req.session.currentOrderId, {
     include: { model: OrderItem, include: Menu },
   });
 
-  if (!order) return "No order found.";
+  if (!order)
+    return "No order found.  Type 1 to see menu items and place an order.";
 
   // 3️⃣ Update order total................SHOULD BE FROM ORDER ITEM
   const total = order.OrderItems.reduce(
@@ -134,6 +148,10 @@ async function checkoutOrder(req) {
   // req.session.currentOrderId = null;
   // req.session.state = "MAIN_MENU";
   // Also how to return a payment feedback, success/fail
+  //   res.redirect(`/chat?payment=success&orderId=${token}`);
+  // } catch (err) {
+  //   console.error(err);
+  //   res.redirect("/chat?payment=failed");
 
   return "Order placed! Click here to make your payment {PAYSTACK LINK} or start a new order.";
 }
@@ -142,7 +160,8 @@ async function checkoutOrder(req) {
  * Cancel current order
  */
 async function cancelOrder(req) {
-  if (!req.session.cart.length) return "No order to cancel.";
+  if (!req.session.cart.length)
+    return "No order to cancel.  Type 1 to see menu items and place an order.";
 
   const order = await Order.findByPk(req.session.currentOrderId);
   if (order) {
@@ -154,7 +173,7 @@ async function cancelOrder(req) {
   req.session.currentOrderId = null;
   req.session.state = "MAIN_MENU";
 
-  return "Current order cancelled.";
+  return "Current order cancelled.  Type 1 to see menu items and place an order.";
 }
 
 /**
@@ -167,18 +186,18 @@ async function viewPastOrders(req) {
     order: [["createdAt", "DESC"]],
   });
 
-  if (!orders.length) return "No past orders.";
+  if (!orders.length)
+    return "No past orders.  Type 1 to see menu items and place an order.";
 
   const result = orders.map((order, idx) => {
     const items = order.OrderItems.map(
       (oi) => `${oi.Menu.name} x${oi.quantity}`
-    ).join(", ");
-    return `Order ${idx + 1} [${order.status}]: ${items} (Total: ₦${
-      order.total
-    })`;
+    ).join("\n");
+    return `Order ${idx + 1} [${order.status}]: 
+${items} (Total: ₦${order.total})`;
   });
 
-  return { reply: result.join("\n") };
+  return result.join("\n\n");
 }
 
 module.exports = {
