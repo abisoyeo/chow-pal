@@ -1,4 +1,4 @@
-import ChatbotComponent from "./ChatbotComponent";
+import ChatbotComponent from "./components/ChatbotComponent";
 
 const App = () => {
   return (
@@ -6,7 +6,7 @@ const App = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-10">
-          🍴 Restaurant Chatbot Widget
+          🥡 Chow Pal
         </h1>
 
         <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
