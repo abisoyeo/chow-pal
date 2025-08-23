@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
+const path = require("path");
 const cors = require("cors");
 const { sequelize } = require("./shared/database");
 const sessionConfig = require("./shared/config/session");
@@ -43,6 +44,17 @@ app.use((req, res) => {
     message: `Cannot ${req.method} ${req.originalUrl}`,
   });
 });
+
+if (process.env.NODE_ENV === "production") {
+  const distPath = path.resolve(__dirname, "../../client/dist");
+  const indexPath = path.resolve(__dirname, "../../client/dist/index.html");
+
+  app.use(express.static(distPath));
+
+  app.use("*", (req, res) => {
+    res.sendFile(indexPath);
+  });
+}
 
 async function startServer() {
   try {
