@@ -20,11 +20,6 @@ app.use(express.json());
 
 app.use(session(sessionConfig));
 
-// Health check
-app.get("/", (req, res) => {
-  res.send("Server is running");
-});
-
 // Routes
 app.use("/api/chat", chatbotRoutes);
 
@@ -38,7 +33,7 @@ app.use((err, req, res, next) => {
 });
 
 // 404 handler
-app.use((req, res) => {
+app.use("/api/*", (req, res) => {
   res.status(404).json({
     error: "Route not found",
     message: `Cannot ${req.method} ${req.originalUrl}`,
