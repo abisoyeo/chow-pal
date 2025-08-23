@@ -16,7 +16,7 @@ export default function ChatWindow({
   }, [messages, isTyping]);
 
   return (
-    <div className="fixed bottom-24 right-4 w-85 h-100 md:h-120 md:w-120 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-40 animate-fadeIn">
+    <div className="fixed bottom-24 right-25 w-85 h-100 md:h-120 md:w-120 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-40 animate-fadeIn">
       {/* Header */}
       <div className="bg-blue-600 text-white p-5 rounded-t-xl">
         <h3 className="font-semibold">🥡 ChowPal</h3>

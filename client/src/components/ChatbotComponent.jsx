@@ -42,11 +42,11 @@ M - Show menu anytime`,
       <button
         onClick={() => setIsOpen(!isOpen)}
         title="Chat with us"
-        className={`fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-200 flex items-center justify-center z-50 focus:outline-none focus:ring-4 focus:ring-blue-300 ${
+        className={`fixed bottom-10 right-25 w-20 h-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-200 flex items-center justify-center z-50 focus:outline-none focus:ring-4 focus:ring-blue-300 ${
           !isOpen ? "animate-pulse" : ""
         }`}
       >
-        {isOpen ? "✖" : "💬"}
+        {isOpen ? "✖" : "🤖"}
       </button>
 
       {/* Chat Window */}
