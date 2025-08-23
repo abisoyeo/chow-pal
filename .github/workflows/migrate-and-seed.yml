@@ -1,0 +1,36 @@
+name: Postgres DB Migration
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  migrate-and-seed:
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_ENV: production
+      DB_SSL: true
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: server
+
+      - name: Run migrations
+        run: npx sequelize-cli db:migrate
+        working-directory: server
+
+      - name: Run seeders
+        run: npx sequelize-cli db:seed:all
+        working-directory: server

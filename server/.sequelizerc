@@ -1,8 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  config: path.resolve("src/shared/config", "db.config.js"),
-  // "models-path": path.resolve("src/shared/database"),
+  config: path.resolve("src/shared/config", "db.js"),
   "migrations-path": path.resolve("src/shared/database/migrations"),
   "seeders-path": path.resolve("src/shared/database/seeders"),
 };
