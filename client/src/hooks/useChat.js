@@ -9,6 +9,7 @@ export function useChat(defaultMessage) {
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("chatMessages", JSON.stringify(messages));
@@ -71,12 +72,23 @@ export function useChat(defaultMessage) {
     const replyText = await sendMessageToServer({ message: userMessage.text });
     setIsTyping(true);
 
+    if (window.innerWidth <= 768 && textareaRef.current) {
+      setTimeout(() => {
+        textareaRef.current.focus();
+      }, 50);
+    }
+
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
         { id: Date.now(), text: replyText, isBot: true, time: new Date() },
       ]);
       setIsTyping(false);
+      if (window.innerWidth <= 768 && textareaRef.current) {
+        setTimeout(() => {
+          textareaRef.current.focus();
+        }, 100);
+      }
     }, 1200);
   };
 
@@ -88,5 +100,6 @@ export function useChat(defaultMessage) {
     handleSendMessage,
     messagesEndRef,
     scrollToBottom,
+    textareaRef,
   };
 }

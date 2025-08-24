@@ -26,6 +26,7 @@ M - Show menu anytime`,
     setInputText,
     isTyping,
     handleSendMessage,
+    textareaRef,
     messagesEndRef,
     scrollToBottom,
   } = useChat(defaultBotMessage);
@@ -65,6 +66,7 @@ M - Show menu anytime`,
           handleSendMessage={handleSendMessage}
           handleKeyPress={handleKeyPress}
           messagesEndRef={messagesEndRef}
+          textareaRef={textareaRef}
           scrollToBottom={scrollToBottom}
           onClose={() => setIsOpen(false)}
         />

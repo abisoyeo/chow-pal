@@ -12,6 +12,7 @@ export default function ChatWindow({
   messagesEndRef,
   scrollToBottom,
   onClose,
+  textareaRef,
 }) {
   useEffect(() => {
     scrollToBottom();
@@ -96,6 +97,7 @@ export default function ChatWindow({
       {/* Input */}
       <div className="flex gap-1 p-3 border-t border-gray-200 bg-gray-50 rounded-b-xl">
         <textarea
+          ref={textareaRef}
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyPress}
@@ -104,7 +106,10 @@ export default function ChatWindow({
           className="flex-1 bg-white border border-gray-300 rounded-full px-3 py-1 text-sm focus:outline-none resize-none leading-loose"
         />
         <button
-          onClick={handleSendMessage}
+          onClick={(e) => {
+            e.preventDefault();
+            handleSendMessage();
+          }}
           className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-sm font-medium"
         >
           Send
