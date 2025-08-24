@@ -19,7 +19,6 @@ exports.handleMessage = async (req, res) => {
   if (state === "MAIN_MENU") {
     switch (input) {
       case "1":
-        req.session.state = "PLACE_ORDER";
         reply = await chatService.getMenuItems();
         break;
       case "97":

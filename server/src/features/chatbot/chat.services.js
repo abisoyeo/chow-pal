@@ -26,6 +26,8 @@ M - Show Main Menu`;
 
 // PLACE ORDER FLOW
 async function getMenuItems() {
+  req.session.state = "PLACE_ORDER";
+
   const items = await Menu.findAll();
   return `Please select which item to add to your cart:
 
@@ -120,7 +122,10 @@ async function initiateCheckout(req) {
 
   req.session.state = "CHECKOUT";
 
-  return "Please enter your email address to make your order: ";
+  return `${req.session.cart.map((i) => `${i.name} x${i.quantity}`).join("\n")}
+Current total: ₦${req.session.cartTotal}
+
+Please enter your email address to make your order: `;
 }
 
 async function checkoutOrder(req, email) {
