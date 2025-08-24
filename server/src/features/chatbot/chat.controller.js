@@ -16,7 +16,6 @@ exports.handleMessage = async (req, res) => {
     return res.json({ reply });
   }
 
-  // MAIN MENU STATE
   if (state === "MAIN_MENU") {
     switch (input) {
       case "1":
@@ -30,7 +29,7 @@ exports.handleMessage = async (req, res) => {
         reply = await chatService.viewPastOrders(req);
         break;
       case "99":
-        reply = await chatService.checkoutOrder(req);
+        reply = await chatService.initiateCheckout(req);
         break;
       case "0":
         reply = await chatService.cancelOrder(req);
@@ -42,7 +41,7 @@ exports.handleMessage = async (req, res) => {
     const selection = parseInt(input, 10);
     if (!isNaN(selection)) {
       if (selection === 99) {
-        reply = await chatService.checkoutOrder(req);
+        reply = await chatService.initiateCheckout(req);
       } else if (selection === 97) {
         reply = await chatService.viewCurrentOrder(req);
       } else if (selection === 0) {
@@ -55,7 +54,17 @@ exports.handleMessage = async (req, res) => {
       reply =
         "Invalid input. Enter a valid item number or  97 to view current orders, 99 to checkout, 0 to cancel, or M to see menu options again.";
     }
+  } else if (state === "CHECKOUT") {
+    const inputTrimmed = input.trim();
+    if (inputTrimmed === "0") {
+      reply = await chatService.cancelOrder(req);
+    } else if (inputTrimmed === "1") {
+      reply = await chatService.getMenuItems(req);
+    } else if (inputTrimmed === "5") {
+      reply = await chatService.retryPayment(req);
+    } else {
+      reply = await chatService.checkoutOrder(req, inputTrimmed);
+    }
   }
-
   res.json({ reply });
 };

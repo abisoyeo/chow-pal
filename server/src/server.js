@@ -6,7 +6,7 @@ const cors = require("cors");
 const { sequelize } = require("./shared/database");
 const sessionConfig = require("./shared/config/session");
 const chatbotRoutes = require("./features/chatbot/chat.routes");
-
+const paystackRoutes = require("./features/paystack/paystack.routes");
 const app = express();
 const PORT = process.env.PORT;
 
@@ -24,6 +24,7 @@ app.use(session(sessionConfig));
 
 // Routes
 app.use("/api/chat", chatbotRoutes);
+app.use("/api/paystack", paystackRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {

@@ -1,17 +1,19 @@
 const { Menu, Order, OrderItem } = require("../../shared/database");
+const paystackService = require("../paystack/paystack.services");
 
-/**
- * Initialize session for a new user
- */
+// HELPERS
+function isValidEmail(email) {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
+}
+
 function initSession(req) {
   if (!req.session.state) req.session.state = "MAIN_MENU";
   if (!req.session.cart) req.session.cart = [];
   if (!req.session.currentOrderId) req.session.currentOrderId = null;
 }
 
-/**
- * Main menu
- */
+// MAIN MENU
 function getMainMenu() {
   return `Select an option:
 1 - Place an order
@@ -19,12 +21,10 @@ function getMainMenu() {
 98 - See order history
 99 - Checkout
 0 - Cancel order
-M - Show menu anytime`;
+M - Show Main Menu`;
 }
 
-/**
- * List menu items from DB
- */
+// PLACE ORDER FLOW
 async function getMenuItems() {
   const items = await Menu.findAll();
   return `Please select which item to add to your cart:
@@ -38,20 +38,20 @@ Enter the number of the meal you’d like to order, or type:
 - M to return to the main menu`;
 }
 
-/**
- * Add item to order (DB + session cart)
- */
 async function addItemToOrder(req, selection) {
   const item = await Menu.findByPk(selection);
-  if (!item) return { error: "Invalid selection" };
+  if (!item)
+    return {
+      error:
+        "Invalid selection. Enter the number of the meal you’d like to order.",
+    };
 
-  // 1️⃣ If no order exists, create a new pending order
   let order;
   if (!req.session.currentOrderId) {
     order = await Order.create({
       sessionId: req.sessionID,
       status: "pending",
-      total: item.price,
+      total: 0,
     });
     req.session.currentOrderId = order.id;
     req.session.cart = [];
@@ -59,49 +59,45 @@ async function addItemToOrder(req, selection) {
     order = await Order.findByPk(req.session.currentOrderId);
   }
 
-  // 2️⃣ Check if item already in current session cart
   let cartItem = req.session.cart.find((i) => i.id === item.id);
   if (cartItem) {
-    // Update quantity in DB
-    const orderItem = await OrderItem.findOne({
-      where: { orderId: order.id, menuId: item.id },
-    });
-    orderItem.quantity += 1;
-    await orderItem.save();
-
     cartItem.quantity += 1;
   } else {
-    // Add new item
-    await OrderItem.create({
-      orderId: order.id,
-      menuId: item.id,
-      quantity: 1,
-      unitPrice: item.price,
-    });
-    req.session.cart.push({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: 1,
-    });
+    cartItem = { id: item.id, name: item.name, price: item.price, quantity: 1 };
+    req.session.cart.push(cartItem);
   }
 
+  const [orderItem, created] = await OrderItem.findOrCreate({
+    where: { orderId: order.id, menuId: item.id },
+    defaults: { quantity: 1, unitPrice: item.price },
+  });
+
+  if (!created) {
+    orderItem.quantity += 1;
+    await orderItem.save();
+  }
+
+  const total = req.session.cart.reduce(
+    (sum, i) => sum + i.quantity * i.price,
+    0
+  );
+  order.total = total;
+  await order.save();
+
+  req.session.cartTotal = total;
+
   return {
-    message: `${item.name} added to your order (x${
-      cartItem ? cartItem.quantity : 1
-    })
+    message: `${item.name} added to your order (x${cartItem.quantity}) 
+Current total: ₦${total}
 
 Add more items (by number)
 - 97 View current order
 - 99 Checkout
-- 0  Cancel order
-- M  Show menu again`,
+- 0 Cancel order
+- M Show menu again`,
   };
 }
 
-/**
- * View current order
- */
 async function viewCurrentOrder(req) {
   if (!req.session.cart.length)
     return "No items in current order. Type 1 to see menu items and place an order.";
@@ -109,6 +105,7 @@ async function viewCurrentOrder(req) {
   return `Your cart:
 
 ${req.session.cart.map((i) => `${i.name} x${i.quantity}`).join("\n")}
+Current total: ₦${req.session.cartTotal}
 
 Add more meals you’d like to order, or type:
 - 99 Checkout
@@ -116,49 +113,61 @@ Add more meals you’d like to order, or type:
 - M  Show menu again`;
 }
 
-/**
- * Checkout current order
- */
-async function checkoutOrder(req) {
+// CHECKOUT FLOW
+async function initiateCheckout(req) {
   if (!req.session.cart.length)
     return "No order to place.  Type 1 to see menu items and place an order.";
 
-  const order = await Order.findByPk(req.session.currentOrderId, {
-    include: { model: OrderItem, include: Menu },
-  });
+  req.session.state = "CHECKOUT";
+
+  return "Please enter your email address to make your order: ";
+}
+
+async function checkoutOrder(req, email) {
+  if (!(email && isValidEmail(email))) {
+    return "Please enter a valid email address. Or type 1 to see menu items and add more items or 0 to cancel order";
+  }
+
+  const order = await Order.findByPk(req.session.currentOrderId);
 
   if (!order)
     return "No order found.  Type 1 to see menu items and place an order.";
 
-  // 3️⃣ Update order total................SHOULD BE FROM ORDER ITEM
-  const total = order.OrderItems.reduce(
-    (sum, i) => sum + i.quantity * i.unitPrice,
-    0
-  );
+  if (
+    order.paymentReference &&
+    order.status === "pending" &&
+    order.paystackUrl
+  ) {
+    return `You already have a pending payment. Click here to pay: ${order.paystackUrl}`;
+  }
 
-  order.total = total;
-  order.status = "completed"; // TESTING. Move all this to paystack payment verification
+  const url = await paystackService.initiatePayment(req, order, email);
+
+  order.email = email;
+  order.paystackUrl = url;
   await order.save();
 
-  // Instead calculate total price for current orders and call paystack payment service by sending amount and user email which returns the link to sedn to cliennt
-
-  // const url = await initiatePayment(req, total, order) // use orderId as reference
-  // order.status = "completed";  // Move all this to paystack payment verification
-  // req.session.cart = [];
-  // req.session.currentOrderId = null;
-  // req.session.state = "MAIN_MENU";
-  // Also how to return a payment feedback, success/fail
-  //   res.redirect(`/chat?payment=success&orderId=${token}`);
-  // } catch (err) {
-  //   console.error(err);
-  //   res.redirect("/chat?payment=failed");
-
-  return "Order placed! Click here to make your payment {PAYSTACK LINK} or start a new order.";
+  return `Order placed! Click here to make your payment ${url} or start a new order.`;
 }
 
-/**
- * Cancel current order
- */
+async function retryPayment(req) {
+  if (!req.session.currentOrderId)
+    return "No pending order to retry payment for.";
+
+  const order = await Order.findOne({
+    where: {
+      id: req.session.currentOrderId,
+      status: "pending",
+    },
+  });
+
+  if (!order) return "No pending order to retry payment for.";
+
+  const url = await paystackService.initiatePayment(req, order, order.email);
+  return `Retry your payment here: ${url}`;
+}
+
+// CANCEL ORDER
 async function cancelOrder(req) {
   if (!req.session.cart.length)
     return "No order to cancel.  Type 1 to see menu items and place an order.";
@@ -176,9 +185,7 @@ async function cancelOrder(req) {
   return "Current order cancelled.  Type 1 to see menu items and place an order.";
 }
 
-/**
- * View past orders
- */
+// PAST ORDERS
 async function viewPastOrders(req) {
   const orders = await Order.findAll({
     where: { sessionId: req.sessionID },
@@ -194,7 +201,8 @@ async function viewPastOrders(req) {
       (oi) => `${oi.Menu.name} x${oi.quantity}`
     ).join("\n");
     return `Order ${idx + 1} [${order.status}]: 
-${items} (Total: ₦${order.total})`;
+${items} 
+(Total: ₦${order.total})`;
   });
 
   return result.join("\n\n");
@@ -206,6 +214,8 @@ module.exports = {
   getMenuItems,
   addItemToOrder,
   viewCurrentOrder,
+  retryPayment,
+  initiateCheckout,
   checkoutOrder,
   cancelOrder,
   viewPastOrders,

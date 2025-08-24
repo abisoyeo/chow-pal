@@ -29,7 +29,6 @@ function loadModels(sequelize, DataTypes) {
     }
   );
 
-  // setup associations
   Object.keys(db).forEach((modelName) => {
     if (db[modelName]?.associate) {
       db[modelName].associate(db);

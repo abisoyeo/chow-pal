@@ -20,7 +20,6 @@ export function useChat(defaultMessage) {
     const paymentStatus = params.get("payment");
 
     if (paymentStatus === "success") {
-      // Show bot message after successful payment
       setMessages((prev) => [
         ...prev,
         {
@@ -35,7 +34,7 @@ export function useChat(defaultMessage) {
         ...prev,
         {
           id: Date.now(),
-          text: "❌ Payment failed. Please try again or choose another method.",
+          text: "❌ Payment failed. Type 5 to try again or choose another method.",
           isBot: true,
           time: new Date(),
         },
