@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useChat } from "../hooks/useChat";
 import ChatWindow from "./ChatWindow";
+import ChatIcon from "./ChatIcon";
 
 export default function ChatbotComponent() {
   const defaultBotMessage = {
@@ -41,12 +42,17 @@ M - Show menu anytime`,
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        title="Chat with us"
-        className={`fixed bottom-10 right-25 w-20 h-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-200 flex items-center justify-center z-50 focus:outline-none focus:ring-4 focus:ring-blue-300 ${
+        className={`fixed bottom-10 right-6 md:right-25 ${
           !isOpen ? "animate-pulse" : ""
         }`}
       >
-        {isOpen ? "✖" : "🤖"}
+        {isOpen ? (
+          <div className="hidden md:flex text-white rounded-full items-center justify-center bg-red-400 w-10 h-10">
+            X
+          </div>
+        ) : (
+          <ChatIcon size={70} />
+        )}
       </button>
 
       {/* Chat Window */}
@@ -60,6 +66,7 @@ M - Show menu anytime`,
           handleKeyPress={handleKeyPress}
           messagesEndRef={messagesEndRef}
           scrollToBottom={scrollToBottom}
+          onClose={() => setIsOpen(false)}
         />
       )}
     </>
