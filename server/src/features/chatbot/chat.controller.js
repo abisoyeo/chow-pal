@@ -19,7 +19,7 @@ exports.handleMessage = async (req, res) => {
   if (state === "MAIN_MENU") {
     switch (input) {
       case "1":
-        reply = await chatService.getMenuItems();
+        reply = await chatService.getMenuItems(req);
         break;
       case "97":
         reply = await chatService.viewCurrentOrder(req);

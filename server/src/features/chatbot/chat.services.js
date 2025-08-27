@@ -25,7 +25,7 @@ M - Show Main Menu`;
 }
 
 // PLACE ORDER FLOW
-async function getMenuItems() {
+async function getMenuItems(req) {
   req.session.state = "PLACE_ORDER";
 
   const items = await Menu.findAll();
