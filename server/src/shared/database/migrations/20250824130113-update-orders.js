@@ -13,7 +13,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn("orders", "paystackUrl");
+    await queryInterface.removeColumn("orders", "paystack_url");
     await queryInterface.removeColumn("orders", "email");
   },
 };

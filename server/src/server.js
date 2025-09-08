@@ -26,6 +26,10 @@ app.use(session(sessionConfig));
 app.use("/api/chat", chatbotRoutes);
 app.use("/api/paystack", paystackRoutes);
 
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "OK" });
+});
+
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
