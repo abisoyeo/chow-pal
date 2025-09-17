@@ -5,7 +5,6 @@ function linkifyText(text) {
       <a
         key={i}
         href={part}
-        target="_blank"
         rel="noopener noreferrer"
         className="text-blue-900 underline break-words"
       >

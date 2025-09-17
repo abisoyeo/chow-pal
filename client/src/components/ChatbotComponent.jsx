@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { useChat } from "../hooks/useChat";
 import ChatWindow from "./ChatWindow";
-import ChatIcon from "./ChatIcon";
 
 export default function ChatbotComponent() {
   const defaultBotMessage = {
@@ -25,7 +23,6 @@ Just type a number to get started!`,
     time: new Date(),
   };
 
-  const [isOpen, setIsOpen] = useState(false);
   const {
     messages,
     setMessages,
@@ -42,7 +39,6 @@ Just type a number to get started!`,
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      // Clear intro message after first user interaction
       if (messages.some((m) => m.isHtml)) {
         setMessages((prev) => prev.filter((m) => !m.isHtml));
       }
@@ -51,20 +47,17 @@ Just type a number to get started!`,
   };
 
   return (
-    <>
-      <ChatWindow
-        messages={messages}
-        isTyping={isTyping}
-        inputText={inputText}
-        setInputText={setInputText}
-        handleSendMessage={handleSendMessage}
-        handleKeyPress={handleKeyPress}
-        messagesEndRef={messagesEndRef}
-        textareaRef={textareaRef}
-        scrollToBottom={scrollToBottom}
-        clearMessages={clearMessages}
-        onClose={() => setIsOpen(false)}
-      />
-    </>
+    <ChatWindow
+      messages={messages}
+      isTyping={isTyping}
+      inputText={inputText}
+      setInputText={setInputText}
+      handleSendMessage={handleSendMessage}
+      handleKeyPress={handleKeyPress}
+      messagesEndRef={messagesEndRef}
+      textareaRef={textareaRef}
+      scrollToBottom={scrollToBottom}
+      clearMessages={clearMessages}
+    />
   );
 }

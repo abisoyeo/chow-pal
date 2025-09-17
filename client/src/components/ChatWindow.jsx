@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-import MessageBubble from "./MessageBubble";
-import { useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
+import MessageBubble from "./MessageBubble";
 
 export default function ChatWindow({
   messages,
@@ -12,7 +11,6 @@ export default function ChatWindow({
   handleKeyPress,
   messagesEndRef,
   scrollToBottom,
-  onClose,
   textareaRef,
 }) {
   useEffect(() => {
@@ -20,21 +18,6 @@ export default function ChatWindow({
   }, [messages, isTyping]);
 
   const chatRef = useRef(null);
-
-  // Handle click outside to close (mobile only)
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     // Only on mobile/tablet screens
-  //     if (window.innerWidth <= 768) {
-  //       if (chatRef.current && !chatRef.current.contains(event.target)) {
-  //         onClose();
-  //       }
-  //     }
-  //   };
-
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => document.removeEventListener("mousedown", handleClickOutside);
-  // }, [onClose]);
 
   const [inputContainer, setInputContainer] = useState(null);
 
@@ -45,7 +28,6 @@ export default function ChatWindow({
 
   return (
     <>
-      {/* Messages - keep original width and scrolling */}
       <div ref={chatRef} className="max-w-4xl mx-auto p-4 space-y-3">
         {messages.map((m) => (
           <MessageBubble key={m.id} message={m} />
@@ -77,7 +59,6 @@ export default function ChatWindow({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input - render in fixed position via portal */}
       {inputContainer &&
         createPortal(
           <div className="flex gap-3 p-4 max-w-4xl mx-auto w-full animate-slideUp">
