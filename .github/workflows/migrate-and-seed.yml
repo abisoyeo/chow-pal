@@ -11,6 +11,8 @@ jobs:
 
     env:
       NODE_ENV: test
+      SESSION_SECRET: test-secret-key
+      CLIENT_URL: http://localhost:3000
 
     steps:
       - name: Checkout code
@@ -21,12 +23,15 @@ jobs:
         with:
           node-version: 20
           cache: "npm"
+          cache-dependency-path: server/package-lock.json
 
       - name: Install dependencies
         run: npm ci
+        working-directory: server
 
       - name: Run tests
         run: npm run test
+        working-directory: server
 
   migrate-and-seed:
     runs-on: ubuntu-latest
