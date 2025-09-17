@@ -93,6 +93,7 @@ export function useChat(defaultMessage) {
 
   return {
     messages,
+    setMessages,
     inputText,
     setInputText,
     isTyping,

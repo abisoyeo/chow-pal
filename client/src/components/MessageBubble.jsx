@@ -36,11 +36,18 @@ export default function MessageBubble({ message }) {
       <div
         className={`max-w-xs min-w-0 px-3 py-2 rounded-2xl text-sm relative break-words whitespace-pre-wrap ${
           message.isBot
-            ? "bg-gray-300 text-gray-800 rounded-bl-none"
-            : "bg-blue-600 text-white rounded-br-none shadow-md"
+            ? "bg-gray-200 text-gray-800 rounded-bl-none"
+            : "bg-[#ee7c2b] text-white rounded-br-none shadow-md"
         }`}
       >
-        {linkifyText(message.text)}
+        {message.isHtml ? (
+          <div
+            className="prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: message.text }}
+          />
+        ) : (
+          linkifyText(message.text)
+        )}
         <div className="text-[10px] text-right">
           {new Date(message.time).toLocaleTimeString([], {
             hour: "2-digit",

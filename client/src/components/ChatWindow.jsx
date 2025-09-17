@@ -21,59 +21,22 @@ export default function ChatWindow({
   const chatRef = useRef(null);
 
   // Handle click outside to close (mobile only)
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Only on mobile/tablet screens
-      if (window.innerWidth <= 768) {
-        if (chatRef.current && !chatRef.current.contains(event.target)) {
-          onClose();
-        }
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     // Only on mobile/tablet screens
+  //     if (window.innerWidth <= 768) {
+  //       if (chatRef.current && !chatRef.current.contains(event.target)) {
+  //         onClose();
+  //       }
+  //     }
+  //   };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, [onClose]);
 
   return (
-    <div
-      ref={chatRef}
-      className="
-      fixed 
-      
-      /* Mobile positioning - aligned with keyboard */
-      bottom-2 right-2 left-2 
-      h-96 max-h-[90vh]
-      
-      /* Desktop positioning - original behavior */
-      md:bottom-24 md:right-20 md:left-auto
-      md:w-120 md:h-120 
-      
-      bg-white rounded-xl shadow-2xl border border-gray-200 
-      flex flex-col z-40 animate-fadeIn
-    "
-    >
-      {/* Header */}
-      <div className="bg-blue-600 text-white p-5 rounded-t-xl">
-        <h3 className="font-semibold">🥡 ChowPal</h3>
-        <p className="text-sm text-blue-100">Make your orders!</p>
-        <button
-          onClick={onClose}
-          className="
-            absolute top-4 right-4
-            
-            /* Mobile: Small X inside header */
-            w-6 h-6 md:hidden
-            bg-red-500 hover:bg-red-600
-            text-white text-xs font-bold
-            rounded-full flex items-center justify-center
-            transition-colors
-          "
-        >
-          ×
-        </button>
-      </div>
-
+    <div ref={chatRef} className="flex flex-col h-full max-w-4xl mx-auto">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-custom-width">
         {messages.map((m) => (
@@ -110,7 +73,7 @@ export default function ChatWindow({
             e.preventDefault();
             handleSendMessage();
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-sm font-medium"
+          className="px-4 py-2 bg-[#ee7c2b] text-white rounded-full hover:bg-[#f7c19a] transition-colors text-sm font-medium cursor-pointer"
         >
           Send
         </button>
