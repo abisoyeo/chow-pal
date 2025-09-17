@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import MessageBubble from "./MessageBubble";
-import { useRef } from "react";
 
 export default function ChatWindow({
   messages,
@@ -11,7 +11,6 @@ export default function ChatWindow({
   handleKeyPress,
   messagesEndRef,
   scrollToBottom,
-  onClose,
   textareaRef,
 }) {
   useEffect(() => {
@@ -20,71 +19,37 @@ export default function ChatWindow({
 
   const chatRef = useRef(null);
 
-  // Handle click outside to close (mobile only)
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Only on mobile/tablet screens
-      if (window.innerWidth <= 768) {
-        if (chatRef.current && !chatRef.current.contains(event.target)) {
-          onClose();
-        }
-      }
-    };
+  const [inputContainer, setInputContainer] = useState(null);
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+  useEffect(() => {
+    const container = document.getElementById("chat-input-container");
+    setInputContainer(container);
+  }, []);
 
   return (
-    <div
-      ref={chatRef}
-      className="
-      fixed 
-      
-      /* Mobile positioning - aligned with keyboard */
-      bottom-2 right-2 left-2 
-      h-96 max-h-[90vh]
-      
-      /* Desktop positioning - original behavior */
-      md:bottom-24 md:right-20 md:left-auto
-      md:w-120 md:h-120 
-      
-      bg-white rounded-xl shadow-2xl border border-gray-200 
-      flex flex-col z-40 animate-fadeIn
-    "
-    >
-      {/* Header */}
-      <div className="bg-blue-600 text-white p-5 rounded-t-xl">
-        <h3 className="font-semibold">🥡 ChowPal</h3>
-        <p className="text-sm text-blue-100">Make your orders!</p>
-        <button
-          onClick={onClose}
-          className="
-            absolute top-4 right-4
-            
-            /* Mobile: Small X inside header */
-            w-6 h-6 md:hidden
-            bg-red-500 hover:bg-red-600
-            text-white text-xs font-bold
-            rounded-full flex items-center justify-center
-            transition-colors
-          "
-        >
-          ×
-        </button>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-custom-width">
+    <>
+      <div ref={chatRef} className="max-w-4xl mx-auto p-4 space-y-3">
         {messages.map((m) => (
           <MessageBubble key={m.id} message={m} />
         ))}
         {isTyping && (
-          <div className="flex items-end justify-start">
-            <div className="w-8 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 mr-1 text-sm">
+          <div className="flex items-end justify-start animate-fadeIn">
+            <div
+              className="w-7 h-7 rounded-xl flex items-center justify-center mr-2 text-sm shadow-sm"
+              style={{
+                backgroundColor: "var(--color-primary-light)",
+                color: "var(--color-primary)",
+              }}
+            >
               🤖
             </div>
-            <div className="bg-gray-100 text-gray-500 px-3 py-2 rounded-lg rounded-tl-none text-sm flex gap-1">
+            <div
+              className="px-4 py-3 rounded-2xl rounded-bl-md text-sm flex gap-1 shadow-sm"
+              style={{
+                backgroundColor: "var(--color-bot-bg)",
+                color: "var(--color-text-muted)",
+              }}
+            >
               <span className="animate-bounce">.</span>
               <span className="animate-bounce delay-150">.</span>
               <span className="animate-bounce delay-300">.</span>
@@ -94,27 +59,61 @@ export default function ChatWindow({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="flex gap-1 p-3 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-        <textarea
-          ref={textareaRef}
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={handleKeyPress}
-          placeholder="Type your message..."
-          rows={1}
-          className="flex-1 bg-white border border-gray-300 rounded-full px-3 py-1 text-sm focus:outline-none resize-none leading-loose"
-        />
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            handleSendMessage();
-          }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-sm font-medium"
-        >
-          Send
-        </button>
-      </div>
-    </div>
+      {inputContainer &&
+        createPortal(
+          <div className="flex gap-3 p-4 max-w-4xl mx-auto w-full animate-slideUp">
+            <textarea
+              ref={textareaRef}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Type your message..."
+              rows={1}
+              className="flex-1 resize-none leading-relaxed text-primary focus:outline-none transition-all duration-200 focus:ring-2 focus:ring-offset-2"
+              style={{
+                backgroundColor: "var(--color-surface)",
+                border: "1.5px solid var(--color-border)",
+                borderRadius: "var(--radius-xl)",
+                padding: "12px 16px",
+                fontSize: "14px",
+                color: "var(--color-text-primary)",
+                focusRingColor: "var(--color-primary)",
+                boxShadow: "var(--shadow-sm)",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "var(--color-primary)";
+                e.target.style.boxShadow =
+                  "0 0 0 3px var(--color-primary-light)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "var(--color-border)";
+                e.target.style.boxShadow = "var(--shadow-sm)";
+              }}
+            />
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="px-6 py-3 text-white font-medium cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 text-sm"
+              style={{
+                backgroundColor: "var(--color-primary)",
+                borderRadius: "var(--radius-xl)",
+                boxShadow: "var(--shadow-md)",
+                border: "none",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.boxShadow = "var(--shadow-lg)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.boxShadow = "var(--shadow-md)";
+              }}
+            >
+              Send
+            </button>
+          </div>,
+          inputContainer
+        )}
+    </>
   );
 }
