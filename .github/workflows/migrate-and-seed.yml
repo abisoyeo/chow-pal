@@ -35,6 +35,7 @@ jobs:
 
   migrate-and-seed:
     runs-on: ubuntu-latest
+    needs: test
 
     env:
       NODE_ENV: production
