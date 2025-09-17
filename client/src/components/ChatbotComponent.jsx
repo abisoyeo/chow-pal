@@ -6,41 +6,22 @@ import ChatIcon from "./ChatIcon";
 export default function ChatbotComponent() {
   const defaultBotMessage = {
     id: 1,
-    text: `
-      <h1 class="text-2xl font-bold text-gray-900 mb-4">👋 Welcome to our Restaurant!</h1>
-      <p class="text-gray-600 mb-4">This is a demo of our Restaurant Chatbot. You can place your food orders directly here.</p>
-  
-      <h3 class="font-semibold ">⚙️ How it works</h3>
-      <ul class="list-disc list-inside">
-        <li>✔ ChatBot interface works like a normal chat app</li>
-        <li>✔ No authentication — sessions stored by device</li>
-        <li>✔ Clean, responsive design with Tailwind CSS</li>
-      </ul>
-  
-      <h3 class="font-semibold mt-4">📝 Available Options</h3>
-      <ul class="list-disc list-inside">
-        <li>1 - Place an order</li>
-        <li>99 - Checkout order</li>
-        <li>98 - See order history</li>
-        <li>97 - See current order</li>
-        <li>0 - Cancel order</li>
-      </ul>
-  
-      <h3 class="font-semibold mt-4">🍽 Ordering Flow</h3>
-      <ul class="list-disc list-inside">
-        <li>Choosing 1 shows available meals</li>   
-        <li>Select meals using the number-based system</li>
-        <li>99 places order (or says “No order to place”)</li>
-        <li>98 displays all past orders</li>
-        <li>97 shows current order</li>
-        <li>0 cancels current order</li>
-      </ul>
-  
-      <h3 class="font-semibold mt-4">💳 Payment</h3>
-      <p class="text-gray-600">When your order is ready, you’ll be prompted to pay using our <strong>Paystack test account</strong>. After successful payment, you’ll be redirected back here and notified of your payment status.</p>
-    `,
+    text: `👋 Welcome to ChowPal!
+
+Order meals right in chat. No sign-up needed.
+
+📝 Quick commands:
+1 - Place an order
+99 - Checkout order  
+98 - Order history
+97 - Current order
+0 - Cancel order
+
+💳 Payment via Paystack (test mode)
+
+Just type a number to get started!`,
     isBot: true,
-    isHtml: true, // 👈 important
+    isHtml: false,
     time: new Date(),
   };
 

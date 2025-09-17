@@ -14,21 +14,19 @@ const App = () => {
     //   </div>
     // </div>
 
-    <div className="flex flex-col h-screen bg-[#f5efec]">
+    <div className="flex flex-col h-screen text-primary" style={{ backgroundColor: 'var(--color-background)' }}>
       {/* Sticky header */}
       <Header />
 
-      {/* Chat area (messages + input) */}
-      <div className="flex flex-col flex-1 overflow-hidden pt-16">
-        {/* Messages should scroll */}
-        <div className="flex-1 overflow-y-auto">
-          <ChatbotComponent />
-        </div>
+      {/* Chat messages - scrollable */}
+      <div className="flex-1 overflow-y-auto pt-16 scrollbar-custom-width">
+        <ChatbotComponent />
+      </div>
 
-        {/* Fixed input */}
-        <div className="border-t border-gray-200 bg-gray-50">
-          {/* you can move the input code from ChatWindow here if you prefer */}
-        </div>
+      {/* Fixed input - spans full width like header */}
+      <div className="w-full glass-effect min-h-[72px] flex items-center">
+        {/* Input will be rendered by ChatbotComponent but positioned here */}
+        <div id="chat-input-container" className="w-full"></div>
       </div>
     </div>
   );
