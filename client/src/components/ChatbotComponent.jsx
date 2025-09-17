@@ -36,6 +36,7 @@ Just type a number to get started!`,
     textareaRef,
     messagesEndRef,
     scrollToBottom,
+    clearMessages,
   } = useChat(defaultBotMessage);
 
   const handleKeyPress = (e) => {
@@ -51,26 +52,6 @@ Just type a number to get started!`,
 
   return (
     <>
-      {/* Floating Button */}
-      {/* <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-10 right-6 md:right-25 ${
-          !isOpen ? "animate-pulse" : ""
-        }`}
-      >
-        {isOpen ? (
-          <div className="hidden md:flex text-white rounded-full items-center justify-center bg-red-400 w-10 h-10">
-            X
-          </div>
-        ) : (
-          <ChatIcon size={70} />
-        )}
-      </button> */}
-
-      {/* Chat Window */}
-      {/* {isOpen && (
-      )} */}
-
       <ChatWindow
         messages={messages}
         isTyping={isTyping}
@@ -81,6 +62,7 @@ Just type a number to get started!`,
         messagesEndRef={messagesEndRef}
         textareaRef={textareaRef}
         scrollToBottom={scrollToBottom}
+        clearMessages={clearMessages}
         onClose={() => setIsOpen(false)}
       />
     </>

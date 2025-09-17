@@ -3,16 +3,23 @@ import { sendMessage } from "../lib/api";
 
 export function useChat(defaultMessage) {
   const [messages, setMessages] = useState(() => {
-    const saved = localStorage.getItem("chatMessages");
+    const saved = sessionStorage.getItem("chatMessages");
     return saved ? JSON.parse(saved) : [defaultMessage];
   });
+
+  // Clear messages and show welcome message
+  const clearMessages = () => {
+    const newMessages = [defaultMessage];
+    setMessages(newMessages);
+    sessionStorage.setItem("chatMessages", JSON.stringify(newMessages));
+  };
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
   useEffect(() => {
-    localStorage.setItem("chatMessages", JSON.stringify(messages));
+    sessionStorage.setItem("chatMessages", JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
@@ -101,5 +108,6 @@ export function useChat(defaultMessage) {
     messagesEndRef,
     scrollToBottom,
     textareaRef,
+    clearMessages,
   };
 }
